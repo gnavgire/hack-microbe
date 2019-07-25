@@ -442,6 +442,13 @@ func (b *Builder) create(runConfig *container.Config) (string, error) {
 	logrus.Debugf("[BUILDER] Command to be executed: %v", runConfig.Cmd)
 
 	isWCOW := runtime.GOOS == "windows" && b.platform != nil && b.platform.OS == "windows"
+	//ganesh
+	// add extra args to storage opts
+	//storageOpts, ok := b.parseStorageOpts()
+	//if !ok {
+	//	return "", errors.New("Invalid storage options")
+	//}
+	//hostConfig := hostConfigFromOptions(b.options, isWCOW, storageOpts)
 	hostConfig := hostConfigFromOptions(b.options, isWCOW)
 	container, err := b.containerManager.Create(runConfig, hostConfig)
 	if err != nil {
@@ -455,6 +462,7 @@ func (b *Builder) create(runConfig *container.Config) (string, error) {
 	return container.ID, nil
 }
 
+//func hostConfigFromOptions(options *types.ImageBuildOptions, isWCOW bool, storageOpts map[string]string) *container.HostConfig {
 func hostConfigFromOptions(options *types.ImageBuildOptions, isWCOW bool) *container.HostConfig {
 	resources := container.Resources{
 		CgroupParent: options.CgroupParent,
@@ -468,6 +476,7 @@ func hostConfigFromOptions(options *types.ImageBuildOptions, isWCOW bool) *conta
 		Ulimits:      options.Ulimits,
 	}
 
+
 	hc := &container.HostConfig{
 		SecurityOpt: options.SecurityOpt,
 		Isolation:   options.Isolation,
@@ -477,6 +486,7 @@ func hostConfigFromOptions(options *types.ImageBuildOptions, isWCOW bool) *conta
 		// Set a log config to override any default value set on the daemon
 		LogConfig:  defaultLogConfig,
 		ExtraHosts: options.ExtraHosts,
+		//StorageOpt: storageOpts,
 	}
 
 	// For WCOW, the default of 20GB hard-coded in the platform
@@ -489,6 +499,26 @@ func hostConfigFromOptions(options *types.ImageBuildOptions, isWCOW bool) *conta
 	}
 
 	return hc
+}
+
+func (b *Builder) parseStorageOpts() (map[string]string, bool) {
+	// add extra args to storage opts
+	storage_opts := make(map[string]string)
+
+	// parse storage options
+	for _, val := range b.options.StorageOpt {
+		if strings.Contains(val, "=") {
+			opt := strings.SplitN(val, "=", 2)
+			storage_opts[opt[0]] = opt[1]
+		} else if strings.Contains(val, ":") {
+			opt := strings.SplitN(val, ":", 2)
+			storage_opts[opt[0]] = opt[1]
+		} else {
+			return storage_opts, false
+		}
+	}
+
+	return storage_opts, true
 }
 
 // fromSlash works like filepath.FromSlash but with a given OS platform field

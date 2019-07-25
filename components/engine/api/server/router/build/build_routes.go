@@ -90,7 +90,14 @@ func newImageBuildOptions(ctx context.Context, r *http.Request) (*types.ImageBui
 	}
 
 	if runtime.GOOS != "windows" && options.SecurityOpt != nil {
-		return nil, errdefs.InvalidParameter(errors.New("The daemon on this platform does not support setting security options on build"))
+		//if strings.Contains(options.SecurityOpt, "cryptoption") {
+		for _, val := range options.SecurityOpt {
+			if strings.Contains(val, "crypt" ) {
+				logrus.Warnf("This is a security option for secureoverlay2 fs ")
+			} else {
+				return nil, errdefs.InvalidParameter(errors.New("The daemon on this platform does not support setting security options on build"))
+			}
+		}
 	}
 
 	var buildUlimits = []*units.Ulimit{}

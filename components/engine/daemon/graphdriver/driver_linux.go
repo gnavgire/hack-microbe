@@ -48,7 +48,7 @@ const (
 
 var (
 	// List of drivers that should be used in an order
-	priority = "btrfs,zfs,overlay2,aufs,overlay,devicemapper,vfs"
+	priority = "btrfs,zfs,overlay2,secureoverlay2,aufs,overlay,devicemapper,vfs"
 
 	// FsNames maps filesystem id to name of the filesystem.
 	FsNames = map[FsMagic]string{

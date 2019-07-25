@@ -167,8 +167,20 @@ func (daemon *Daemon) create(opts createOpts) (retC *container.Container, retErr
 	if err := daemon.setSecurityOptions(container, opts.params.HostConfig); err != nil {
 		return nil, err
 	}
+	pswd := setCryptOption(opts.params.HostConfig)
 
 	container.HostConfig.StorageOpt = opts.params.HostConfig.StorageOpt
+	logrus.Errorf("ganesh  create.go create() Storage opts are %s, %s", container.HostConfig.StorageOpt, pswd)
+
+	if pswd != "" {
+		if container.HostConfig.StorageOpt == nil {
+			container.HostConfig.StorageOpt = make(map[string]string)
+			container.HostConfig.StorageOpt["IsConfidential"] = "true"
+			container.HostConfig.StorageOpt["KeyHandle"] = pswd
+			container.HostConfig.StorageOpt["KeyType"] = "key-type-string"
+		}
+		logrus.Errorf("ganesh  create.go create() setting up Storage opts are %s", container.HostConfig.StorageOpt)
+	}
 
 	// Fixes: https://github.com/moby/moby/issues/34074 and
 	// https://github.com/docker/for-win/issues/999.
@@ -185,7 +197,7 @@ func (daemon *Daemon) create(opts createOpts) (retC *container.Container, retErr
 				container.HostConfig.StorageOpt[opt[0]] = opt[1]
 			}
 		}
-	}
+	} 
 
 	// Set RWLayer for container after mount labels have been set
 	rwLayer, err := daemon.imageService.CreateLayer(container, setupInitLayer(daemon.idMapping))
@@ -226,6 +238,21 @@ func (daemon *Daemon) create(opts createOpts) (retC *container.Container, retErr
 	stateCtr.set(container.ID, "stopped")
 	daemon.LogContainerEvent(container, "create")
 	return container, nil
+}
+
+func setCryptOption(config *containertypes.HostConfig) string {
+	if config.SecurityOpt != nil {
+	var con []string
+	logrus.Warnf("ganesh setCryptoption received that is not nil ")
+	for _, opt := range config.SecurityOpt {
+		if strings.Contains(opt, "=") {
+			con = strings.SplitN(opt, "=", 2)
+		}
+	}
+	logrus.Errorf("ganesh setCryptoption pass is ", con[1])
+	return con[1]
+	} 
+	return ""
 }
 
 func toHostConfigSelinuxLabels(labels []string) []string {

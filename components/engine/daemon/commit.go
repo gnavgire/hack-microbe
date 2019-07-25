@@ -153,6 +153,22 @@ func (daemon *Daemon) CreateImageFromContainer(name string, c *backend.CreateIma
 	if err := merge(newConfig, container.Config); err != nil {
 		return "", err
 	}
+	//ganesh
+	/*
+	storageOpts := make(map[string]string)
+	// save meta-data in image history for secureoverlay2 driver
+	if daemon.layerStore.DriverName() == "secureoverlay2" {
+		storageOpts = container.HostConfig.StorageOpt
+		if (storageOpts == nil) { storageOpts = make(map[string]string) }
+		if meta, err := container.RWLayer.Metadata(); err == nil {
+			knownKeys := []string{"CryptCipher", "CryptHashType", "IsConfidential",
+				"KeyHandle", "KeySize", "KeyType"}
+			for _, key := range knownKeys {
+				storageOpts[key] = meta[key]
+			}
+		}
+	}
+	*/
 
 	id, err := daemon.imageService.CommitImage(backend.CommitConfig{
 		Author:              c.Author,

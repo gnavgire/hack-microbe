@@ -212,6 +212,7 @@ func parseSecurityOpt(container *container.Container, config *containertypes.Hos
 	)
 
 	for _, opt := range config.SecurityOpt {
+		logrus.Warn("ganesh options from parseSecurityOpt are %s ", opt)
 		if opt == "no-new-privileges" {
 			container.NoNewPrivileges = true
 			continue
@@ -245,6 +246,8 @@ func parseSecurityOpt(container *container.Container, config *containertypes.Hos
 				return fmt.Errorf("invalid --security-opt 2: %q", opt)
 			}
 			container.NoNewPrivileges = noNewPrivileges
+		case "crypt":
+			logrus.Warn("ganesh Security option crypt received")
 		default:
 			return fmt.Errorf("invalid --security-opt 2: %q", opt)
 		}
